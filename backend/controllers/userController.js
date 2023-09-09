@@ -52,7 +52,9 @@ const loginUser = async(req, res)=>{
         return res.status(201).json({
             id: userExist._id,
             name: userExist.name,
-            email: userExist.email
+            email: userExist.email,
+
+            message: "Logged in successfully"
         });
     } catch (error) {
         return res.status(500).json({message: "Something went wrong"});
@@ -62,7 +64,11 @@ const loginUser = async(req, res)=>{
 
 // Logout User
 const logoutUser = async(req, res)=>{
-    res.send('User Loggout')
+    res.cookie('jwt', '', {
+        httpOnly: true,
+        expires: new Date(0)
+    })
+    return res.status(200).json({message: "User logged out successfully"})
 };
 
 const getUserProfile = async(req, res)=>{
