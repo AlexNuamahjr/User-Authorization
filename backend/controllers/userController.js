@@ -10,7 +10,7 @@ const registerUser = async(req, res)=>{
         // Check if user exists
         const userExist = await User.findOne({where: {email: email}});
         if (userExist){
-            return res.status(400).json({message: "User already exists"});
+            res.status(400).json({message: "User already exists"});
         }
 
         // Hashing password
@@ -43,21 +43,26 @@ const loginUser = async(req, res)=>{
     try {
         // Check if user credentials are valid
         const userExist = await User.findOne({where: {email: email}});
-        const matchPassword = bcrypt.compare(password, userExist.password);
-        if ((!userExist) && (!matchPassword)){
-            return res.status(404).json({message: "Invalid Credentials"});
+        if (userExist){
+            const matchPassword = await bcrypt.compare(password, userExist.password);
+            if (matchPassword){
+                generateToken(res, userExist)
+                res.status(201).json({
+                    id: userExist._id,
+                    name: userExist.name,
+                    email: userExist.email,
+                    message: "Login successfully"
+                })
+            }else{
+                res.status(401).json({message: "Invalid Credentials"})
+            }
+        }else{
+            res.status(401).json({message: "Invalid Credentials"})
         }
-        // If valid, generate token
-        generateToken(res, userExist._id)
-        return res.status(201).json({
-            id: userExist._id,
-            name: userExist.name,
-            email: userExist.email,
-
-            message: "Logged in successfully"
-        });
+        
     } catch (error) {
-        return res.status(500).json({message: "Something went wrong"});
+        console.log(error);
+        return res.status(400).json({message: "Something went wrong"});
     }
     // res.send('Login User')
 };
@@ -68,11 +73,19 @@ const logoutUser = async(req, res)=>{
         httpOnly: true,
         expires: new Date(0)
     })
-    return res.status(200).json({message: "User logged out successfully"})
+    res.status(200).json({message: "User logged out successfully"})
 };
 
 const getUserProfile = async(req, res)=>{
-    res.send('User Profile')
+    const {id} = req.params;
+    try {
+        const {name, email} = req.body
+        const user = await User.findOne({where: {id, email, name}})
+        return res.status(200).json(user)
+    } catch (error) {
+        res.status(500).json({message: "Something went wrong"})
+    }
+    
 };
 
 const updateUserProfile = async(req, res)=>{
