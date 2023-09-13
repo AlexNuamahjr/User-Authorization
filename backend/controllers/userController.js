@@ -64,7 +64,7 @@ const loginUser = async(req, res)=>{
         console.log(error);
         return res.status(400).json({message: "Something went wrong"});
     }
-    // res.send('Login User')
+    
 };
 
 // Logout User
@@ -73,19 +73,23 @@ const logoutUser = async(req, res)=>{
         httpOnly: true,
         expires: new Date(0)
     })
-    res.status(200).json({message: "User logged out successfully"})
+    return res.status(200).json({message: "User logged out successfully"})
 };
 
 const getUserProfile = async(req, res)=>{
     const {id} = req.params;
+    console.log(id);
     try {
-        const {name, email} = req.body
-        const user = await User.findOne({where: {id, email, name}})
-        return res.status(200).json(user)
+        const user = await User.findOne({where: {id}})
+        if (user){
+            return res.status(200).json(user)
+        }else{
+            return res.status(401).json({message: "User not found"})
+        }
     } catch (error) {
-        res.status(500).json({message: "Something went wrong"})
+        console.log(error);
+        return res.status(500).json({message: "Something went wrong"})
     }
-    
 };
 
 const updateUserProfile = async(req, res)=>{
